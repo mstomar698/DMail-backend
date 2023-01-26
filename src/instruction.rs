@@ -1,4 +1,6 @@
 use crate::error::MailError::InvalidInstruction;
+use crate::state::Mail;
+use borsh::BorshDeserialize;
 use solana_program::program_error::ProgramError;
 
 // This will declare endpoint InitAccount
@@ -7,6 +9,9 @@ pub enum MailInstruction {
     /// Creating account here.
     /// * `[writable]` AccountInfo of the created Account
     InitAccount,
+    /// Sending mail to another account
+    /// * `[writable]` AccountInfo of sender and reciever
+    SendMail { mail: Mail },
 }
 
 // To call Error when initiating account from InitAccount enum
@@ -16,6 +21,9 @@ impl MailInstruction {
 
         Ok(match tag {
             0 => Self::InitAccount,
+            1 => Self::SendMail {
+                mail: Mail::try_from_slice(&rest)?,
+            },
             _ => return Err(InvalidInstruction.into()),
         })
     }
