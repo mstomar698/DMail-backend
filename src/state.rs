@@ -8,7 +8,7 @@ pub struct Mail {
     pub to_address: String,
     pub subject: String,
     pub body: String,
-    pub sent_data: String,
+    pub sent_date: String,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
