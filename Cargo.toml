@@ -10,7 +10,7 @@ borsh-derive = "0.9.1"
 thiserror = "1.0.24"
 
 [features]
-
+test-bpf = []
 
 [lib]
 crate-type = ["cdylib", "lib"]

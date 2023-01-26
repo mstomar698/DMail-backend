@@ -139,3 +139,103 @@ impl Processor {
         Ok(())
     }
 }
+
+//Test Here
+#[cfg(test)]
+mod test {
+    use super::*;
+    use solana_program::clock::Epoch;
+
+    #[test]
+    fn test_init_account() {
+        let program_id = Pubkey::default();
+        let key = Pubkey::default();
+        let mut lamports = 0;
+        let mut data = [0; 1000];
+
+        let account = AccountInfo::new(
+            &key,
+            true,
+            true,
+            &mut lamports,
+            &mut data,
+            &program_id,
+            false,
+            Epoch::default(),
+        );
+
+        Processor::process_init_account(&account, &program_id).unwrap();
+
+        let data_length = DataLength::try_from_slice(&account.data.borrow()[..4]).unwrap();
+        let mail_account = MailAccount::try_from_slice(
+            &account.data.borrow()[4..usize::try_from(data_length.length + 4).unwrap()],
+        )
+        .unwrap();
+
+        assert_eq!(mail_account.inbox[0].subject, "Welcome to SolMail");
+    }
+
+    #[test]
+    fn test_send_mail() {
+        let program_id = Pubkey::default();
+        let key = Pubkey::default();
+        let mut lamports = 0;
+        let mut sender_data = [0; 1000];
+
+        let sender_account = AccountInfo::new(
+            &key,
+            true,
+            true,
+            &mut lamports,
+            &mut sender_data,
+            &program_id,
+            false,
+            Epoch::default(),
+        );
+
+        let mut receiver_data = [0; 1000];
+        let mut lamports = 0;
+
+        let receiver_account = AccountInfo::new(
+            &key,
+            true,
+            true,
+            &mut lamports,
+            &mut receiver_data,
+            &program_id,
+            false,
+            Epoch::default(),
+        );
+
+        let accounts = vec![sender_account.clone(), receiver_account.clone()];
+
+        let mail = Mail {
+      id: String::from("00000000-0000-0000-0000-000000000000"),
+      from_address: sender_account.key.to_string(),
+      to_address: receiver_account.key.to_string(),
+      subject: String::from("Hey Mike!!!"),
+      body: String::from(
+        "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quos ut labore, debitis assumenda, dolorem nulla facere soluta exercitationem excepturi provident ipsam reprehenderit repellat quisquam corrupti commodi fugiat iusto quae voluptates!"
+      ),
+      sent_date: String::from("9/29/2021, 3:58:02 PM")
+    };
+
+        Processor::process_send_mail(&accounts, &mail, &program_id).unwrap();
+
+        let data_length = DataLength::try_from_slice(&sender_account.data.borrow()[..4]).unwrap();
+        let mail_account = MailAccount::try_from_slice(
+            &sender_account.data.borrow()[4..usize::try_from(data_length.length + 4).unwrap()],
+        )
+        .unwrap();
+
+        assert_eq!(mail_account.sent[0].subject, "Hey Mike!!!");
+
+        let data_length = DataLength::try_from_slice(&receiver_account.data.borrow()[..4]).unwrap();
+        let mail_account = MailAccount::try_from_slice(
+            &receiver_account.data.borrow()[4..usize::try_from(data_length.length + 4).unwrap()],
+        )
+        .unwrap();
+
+        assert_eq!(mail_account.inbox[0].subject, "Hey Mike!!!");
+    }
+}
