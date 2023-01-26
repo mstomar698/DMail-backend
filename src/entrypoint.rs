@@ -15,7 +15,3 @@ fn process_instruction(
 ) -> ProgramResult {
     Processor::process(program_id, accounts, instruction_data)
 }
-
-fn process_init_account(account: &AccountInfo, program_id: &Pubkey) -> ProgramResult {
-    Ok(())
-}
